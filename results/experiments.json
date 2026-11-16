@@ -1,0 +1,46 @@
+{
+ "E1": {
+  "frames_per_class": 3000,
+  "best_single_feature_threshold_accuracy": 0.51,
+  "baseline_event_driven_timing_accuracy": 1.0,
+  "note": "meilleure exactitude sur 3 caracteristiques x seuils (optimiste pour l'adversaire, evaluee sur les donnees d'apprentissage)"
+ },
+ "E3": [
+  {
+   "slot_ms": 250,
+   "debit_bit_s": 2048.0,
+   "latence_moy_ms": 124.9,
+   "latence_max_ms": 250
+  },
+  {
+   "slot_ms": 500,
+   "debit_bit_s": 1024.0,
+   "latence_moy_ms": 250.3,
+   "latence_max_ms": 500
+  },
+  {
+   "slot_ms": 1000,
+   "debit_bit_s": 512.0,
+   "latence_moy_ms": 502.4,
+   "latence_max_ms": 1000
+  },
+  {
+   "slot_ms": 2000,
+   "debit_bit_s": 256.0,
+   "latence_moy_ms": 992.5,
+   "latence_max_ms": 2000
+  },
+  {
+   "slot_ms": 5000,
+   "debit_bit_s": 102.4,
+   "latence_moy_ms": 2563.4,
+   "latence_max_ms": 5000
+  }
+ ],
+ "E5": {
+  "pin_recupere": true,
+  "essais": 482916,
+  "duree_s": 1.86,
+  "lecture": "avec Kmac extraite du terminal ET une trame captee, un PIN a 6 chiffres tombe hors-ligne : limite reconnue"
+ }
+}
