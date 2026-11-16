@@ -15,7 +15,7 @@ Military command-and-control and banking share one hard problem: a high-value, i
 must be authorised by a human at an embedded terminal, over a link an adversary can watch, while the
 human may be under duress. Existing pieces are well known (duress PIN, two-person rule, constant-rate
 padding, keystroke dynamics). TACET's question is narrower: *can they be combined in a terminal so
-that nothing observable — on the device, on the wire, on the screen — separates a coerced order from a
+that nothing observable  on the device, on the wire, on the screen  separates a coerced order from a
 genuine one, while the control centre still reacts correctly?*
 
 ## What it does
