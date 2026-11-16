@@ -1,12 +1,15 @@
 # TACET — Coercion-aware authorisation over a covert, constant-rate link
 
-**Wokwi simulation:** https://wokwi.com/projects/480877116153590785
+[![Interactive demo](https://img.shields.io/badge/🌐_Interactive_demo-GitHub_Pages-46e0d0?style=for-the-badge)](https://amalkaraoud.github.io/tacet/) [![Open the live simulation on Wokwi](https://img.shields.io/badge/▶_Run_it_on-Wokwi-1f6feb?style=for-the-badge)](https://wokwi.com/projects/480877116153590785)
+
+**Interactive web demo (scenarios S1–S6, wire view):** [https://amalkaraoud.github.io/tacet/](https://amalkaraoud.github.io/tacet/)  
+**Live simulation (opens the working project, not a blank one):** [https://wokwi.com/projects/480877116153590785](https://wokwi.com/projects/480877116153590785)
 
 > *tacet* (Latin): "it is silent". A MicroPython terminal that lets two operators authorise an
 > irreversible order (a wire transfer, a command release) **even when one of them is being forced**,
-> without the coercer  or a network eavesdropper  being able to tell.
+> without the coercer — or a network eavesdropper — being able to tell.
 
-Author: **Amal Karaoud** ·. Defensive security only.
+Author: **Amal Karaoud** · Defensive security only.
 
 ## Why
 
@@ -36,17 +39,18 @@ python tools/run_scenarios.py      # reference output for the six scenarios
 python experiments/run_experiments.py && python experiments/e2_bio.py
 ```
 
-On Wokwi: create a *MicroPython ESP32* project, copy the files of `wokwi/` (including
+On Wokwi: open the ready-made [live project](https://wokwi.com/projects/480877116153590785) (press ▶), or create a *MicroPython ESP32* project, copy the files of `wokwi/` (including
 `diagram.json`), press Play, then type `d` in the serial console (or press D on the keypad) to step
 through scenarios S1–S6. See `docs/WOKWI_GUIDE.md`.
 
 ## Layout
 
 ```
+index.html  interactive web demo (served by GitHub Pages)
 firmware/   MicroPython sources (tcrypto, tproto, tbio, tchannel, tscen, main, ssd1306, tconfig)
 wokwi/      flat copy for Wokwi + diagram.json
 tests/      13 property tests        experiments/  E1 E2 E3 E5        results/  measured JSON
-tools/      scenario runner, figures docs/        architecture, threat model, related work, defence guide
+tools/      scenario runner, figures docs/        architecture, threat model, related work, defence guide, deliverables/ (slides + report)
 ```
 
 ## Honest limits

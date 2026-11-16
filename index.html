@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TACET — coercion-aware authorisation over a covert, constant-rate link</title>
+<meta name="description" content="Interactive demo of TACET: a terminal where a coerced order is indistinguishable from a genuine one, yet the control centre reacts correctly. Play the scenarios in your browser.">
+<style>
+:root{--bg:#0a0f14;--panel:#111a22;--panel2:#16222d;--line:#243442;--tx:#e6eef5;--mut:#8ea3b5;--cy:#46e0d0;--ok:#5fe39a;--bad:#ff6b6b;--warn:#ffc857;--vi:#9d8cff}
+*{box-sizing:border-box}html{scroll-behavior:smooth}
+body{margin:0;background:radial-gradient(1200px 500px at 70% -10%,#12303a55,transparent),var(--bg);color:var(--tx);font:16px/1.55 system-ui,Segoe UI,Roboto,sans-serif}
+a{color:var(--cy)}code,.mono{font-family:ui-monospace,Consolas,monospace}
+.wrap{max-width:1180px;margin:auto;padding:0 20px}
+nav{position:sticky;top:0;z-index:20;background:#0a0f14e6;backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+nav .wrap{display:flex;gap:18px;align-items:center;height:54px;overflow:hidden}
+nav b{letter-spacing:.2em;color:var(--cy)}nav a{color:var(--mut);text-decoration:none;font-size:14px;white-space:nowrap}nav a:hover{color:var(--tx)}nav .sp{flex:1}
+.hero{padding:56px 0 24px}
+h1{font-size:clamp(34px,5.2vw,60px);line-height:1.05;margin:0 0 14px;max-width:900px}h1 span{color:var(--cy)}
+.lead{color:var(--mut);font-size:18px;max-width:720px}
+.cta{display:flex;flex-wrap:wrap;gap:12px;margin-top:22px}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:10px 16px;border-radius:10px;border:1px solid var(--line);background:var(--panel2);color:var(--tx);font:600 14px system-ui;cursor:pointer;text-decoration:none;transition:.15s;white-space:normal}
+.btn:hover{transform:translateY(-1px);border-color:var(--cy)}.btn.pri{background:var(--cy);color:#04211e;border-color:var(--cy)}
+.btn.on{border-color:var(--cy);box-shadow:0 0 0 1px var(--cy) inset}.btn:disabled{opacity:.4;cursor:not-allowed;transform:none}
+section{padding:34px 0}h2{font-size:28px;margin:0 0 6px}.sub{color:var(--mut);margin:0 0 20px;max-width:780px}
+.grid{display:grid;gap:16px}.g3{grid-template-columns:repeat(3,1fr)}.g2{grid-template-columns:1fr 1fr}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px;min-width:0}
+.card h3{margin:0 0 8px;font-size:16px}.card p{margin:0;color:var(--mut);font-size:14px}
+.tag{font:700 11px ui-monospace,monospace;letter-spacing:.08em;color:var(--cy);text-transform:uppercase}
+.note{font-size:13px;color:var(--mut);margin-top:10px}
+.row{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+/* wire lab */
+.strip{display:grid;grid-template-columns:repeat(24,1fr);gap:3px;margin-top:8px}
+.cell{height:34px;border-radius:5px;background:#0d151c;border:1px solid #1b2a37;display:grid;place-items:center;font:10px ui-monospace,monospace;color:#5b7385}
+.cell.f{background:#1c3a46;border-color:#2e6275;color:#bfe9f0;animation:pop .3s}
+.cell.f.real.rev{background:#5b2a2f;border-color:var(--bad);color:#ffd2d2}
+.cell.f.nsz{background:#3b3320;border-color:#8b7a3a;color:#ffe9a8}
+@keyframes pop{from{transform:scale(.4);opacity:.2}to{transform:none;opacity:1}}
+.meter{height:12px;border-radius:6px;background:#0d151c;border:1px solid var(--line);overflow:hidden;margin-top:4px}
+.meter i{display:block;height:100%;background:var(--cy);transition:width .6s}
+.meter.red i{background:var(--bad)}
+/* scenario */
+.three{display:grid;grid-template-columns:1fr 1.15fr 1fr;gap:14px;align-items:stretch}
+.view h3 .ic{margin-right:6px}
+.screen{background:#04100e;border:2px solid #1f3b37;border-radius:10px;padding:14px;font:15px/1.5 ui-monospace,monospace;color:#7ff0d8;min-height:116px;box-shadow:0 0 18px #46e0d01c inset}
+.screen b{color:#fff}
+.keypad{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:10px}
+.key{padding:9px 0;border-radius:8px;border:1px solid var(--line);background:var(--panel2);color:var(--tx);font:700 16px ui-monospace,monospace;cursor:pointer}
+.key:hover{border-color:var(--cy)}.key.fn{font-size:12px}
+.pipe{display:flex;flex-direction:column;gap:6px}
+.step{padding:8px 10px;border-radius:8px;border:1px solid var(--line);background:var(--panel2);font-size:13px;display:flex;justify-content:space-between;gap:8px;transition:.25s}
+.step.act{border-color:var(--cy);background:#12363a}.step.pass{border-color:#2d6a50;color:#aef2cf}.step.stop{border-color:var(--bad);background:#3a1a1e;color:#ffc9c9}
+.verdict{margin-top:10px;padding:12px;border-radius:10px;border:1px solid var(--line);background:var(--panel2);font:700 18px ui-monospace,monospace;text-align:center;min-height:50px}
+.v-EXECUTE{color:var(--ok);border-color:var(--ok)}.v-DECOY{color:var(--vi);border-color:var(--vi)}.v-HOLD{color:var(--warn);border-color:var(--warn)}
+.v-DROP_REPLAY,.v-DROP_TAMPER,.v-FAIL,.v-LOCKED{color:var(--bad);border-color:var(--bad)}.v-PENDING{color:var(--cy);border-color:var(--cy)}
+.wirebox{position:relative;height:30px;margin:12px 0;border-radius:8px;background:#0d151c;border:1px solid var(--line);overflow:hidden}
+.pkt{position:absolute;top:5px;left:0;width:40px;height:18px;border-radius:5px;background:var(--cy);font:10px/18px ui-monospace,monospace;color:#04211e;text-align:center}
+.pkt.x{background:var(--bad);color:#fff}
+.log{font:12px/1.5 ui-monospace,monospace;background:#070c11;border:1px solid var(--line);border-radius:10px;padding:10px;height:128px;overflow:auto;color:#a9c0d2;margin-top:12px}
+select,input[type=range]{accent-color:var(--cy)}select{background:var(--panel2);color:var(--tx);border:1px solid var(--line);border-radius:8px;padding:8px}
+table{width:100%;border-collapse:collapse;font-size:14px}th,td{padding:9px 10px;border-bottom:1px solid var(--line);text-align:left}th{color:var(--mut);font-weight:600}
+.frame{display:flex;height:44px;border:1px solid var(--line);border-radius:8px;overflow:hidden;font:11px ui-monospace,monospace;margin-top:10px}
+.frame div{display:grid;place-items:center;border-right:1px solid var(--line);text-align:center;padding:0 2px}
+.wokwi iframe{width:100%;height:560px;border:1px solid var(--line);border-radius:12px;background:#000}
+footer{border-top:1px solid var(--line);padding:28px 0;color:var(--mut);font-size:14px;margin-top:30px}
+@media(max-width:960px){.three,.g3,.g2{grid-template-columns:1fr}nav a:nth-child(n+4){display:none}nav a:last-child{display:inline}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+.pulse{display:flex;gap:6px;align-items:center;margin-top:26px}
+.pulse i{width:16px;height:30px;border-radius:4px;background:#1c3a46;animation:bar 1.6s infinite}
+.pulse i:nth-child(3n){animation-delay:.3s}.pulse i:nth-child(3n+1){animation-delay:.6s}
+@keyframes bar{50%{background:var(--cy);transform:scaleY(1.25)}}
+</style>
+</head>
+<body>
+<nav><div class="wrap"><b>TACET</b><a href="#wire">Wire lab</a><a href="#scen">Scenarios</a><a href="#tradeoff">Trade-off</a><a href="#sim">Wokwi</a><a href="#limits">Limits</a><span class="sp"></span>
+<a href="https://github.com/Amalkaraoud/tacet" target="_blank" rel="noopener">GitHub ↗</a></div></nav>
+<div class="wrap">
+<header class="hero">
+ <p class="mono" style="color:var(--cy);margin:0 0 10px">MicroPython · ESP32 · Wokwi · defensive security</p>
+ <h1><span>tacet</span> — a coerced order that looks exactly like a genuine one</h1>
+ <p class="lead">Two operators must authorise an irreversible order (a wire transfer, a command release) over a link an adversary can watch — while one of them may be forced. TACET makes the coerced order silently harmless: nothing visible on the device, on the wire or on the screen reveals it, yet the control centre reacts correctly.</p>
+ <div class="cta"><a class="btn pri" href="#scen">▶ Play the scenarios</a>
+  <a class="btn" href="https://wokwi.com/projects/480877116153590785" target="_blank" rel="noopener">Open the Wokwi simulation ↗</a>
+  <a class="btn" href="https://github.com/Amalkaraoud/tacet" target="_blank" rel="noopener">Source code ↗</a></div>
+ <div class="pulse" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+</header>
+
+<section id="wire">
+ <h2>1 · What an eavesdropper sees</h2>
+ <p class="sub">A normal link transmits only when something happens, so timing alone gives the order away. TACET sends <b>one fixed 64-byte encrypted frame in every time slot</b>, real or cover. Send some orders and compare.</p>
+ <div class="card">
+  <div class="row" style="margin-top:0"><button class="btn on" id="m-tacet">TACET constant-rate link</button><button class="btn" id="m-naive">Naive event-driven link</button>
+   <span style="flex:1"></span><button class="btn pri" id="sendorder">Send an order</button><button class="btn" id="reveal">Reveal real frames</button></div>
+  <p class="tag" style="margin-top:14px">What the observer records (time → frame)</p>
+  <div class="strip" id="strip"></div>
+  <div class="grid g2" style="margin-top:14px">
+   <div><div class="note" style="margin:0">Observer accuracy at telling “order” from “cover”</div><div class="meter" id="mt"><i style="width:51%"></i></div><div class="mono" id="acc" style="font-size:13px;margin-top:4px">51.0 % — chance level (experiment E1)</div></div>
+   <div><p class="note" style="margin:0" id="wnote">Each slot carries exactly 64 bytes, sent on a fixed clock. Real and cover frames are both encrypted; they differ in nothing the observer can measure. Cost: an order waits for the next slot.</p></div>
+  </div>
+ </div>
+</section>
+
+<section id="scen">
+ <h2>2 · One order, three points of view</h2>
+ <p class="sub">Enter PINs like the two operators would. The <b>terminal never verifies a PIN</b> — it always answers “ORDER SENT”. Only the control centre (C2) knows which PIN is normal and which is the duress PIN. Demo PINs are public: operator 1 = <code>482915</code> (duress <code>482951</code>), operator 2 = <code>739206</code> (duress <code>739260</code>).</p>
+ <div class="row" style="margin:0 0 14px">
+  <button class="btn" data-s="S1">S1 · nominal</button><button class="btn" data-s="S2">S2 · duress PIN</button><button class="btn" data-s="S3">S3 · stress rhythm</button>
+  <button class="btn" data-s="S4">S4 · replay</button><button class="btn" data-s="S5">S5 · tampered frame</button><button class="btn" data-s="S6">S6 · PIN brute force</button><button class="btn" id="newround">New round / admin unlock</button></div>
+ <div class="three">
+  <div class="card view"><h3><span class="ic">👤</span>Coercer / terminal screen</h3>
+   <div class="screen" id="screen">TACET terminal<br>Operator <b id="opn">1</b> — enter PIN<br><b id="pinv">······</b></div>
+   <div class="keypad" id="kp"></div>
+   <div class="row"><button class="btn" id="opsw">Switch operator</button><span style="flex:1"></span></div>
+   <label class="note" style="display:block">Typing-rhythm stress score <span class="mono" id="biov">20</span> / 255 (threshold 96)</label><input type="range" id="bio" min="0" max="255" value="20" style="width:100%">
+  </div>
+  <div class="card view"><h3><span class="ic">📡</span>Wire (observer)</h3>
+   <div class="wirebox" id="wb"></div>
+   <div class="note" style="margin:0">Always: <b class="mono">64 bytes · 1 frame per slot</b>. A frame carrying a coerced order is bit-for-bit the same size and cadence as the others.</div>
+   <h3 style="margin-top:16px"><span class="ic">🛰</span>C2 decision pipeline</h3>
+   <div class="pipe" id="pipe"></div>
+  </div>
+  <div class="card view"><h3><span class="ic">🏛</span>Control centre (C2)</h3>
+   <div class="verdict" id="verdict">—</div>
+   <div class="log" id="log"></div>
+   <div class="row"><button class="btn" id="replay">Replay last frame</button><button class="btn" id="tamper">Flip a bit in a frame</button></div>
+  </div>
+ </div>
+ <div class="card" style="margin-top:16px"><p><b>Reference results</b> (<code>python tools/run_scenarios.py</code>): S1 <code>PENDING → EXECUTE</code> · S2 <code>PENDING → DECOY</code> · S3 <code>HOLD → HOLD</code> · S4 <code>DROP_REPLAY</code> · S5 <code>DROP_TAMPER</code> · S6 <code>FAIL FAIL FAIL LOCKED</code>. The buttons above reproduce the same outcomes with the same rules.</p></div>
+</section>
+
+<section id="tradeoff">
+ <h2>3 · The price of silence</h2>
+ <p class="sub">A constant-rate link trades latency for covertness. Slide the slot length (values measured in experiment E3).</p>
+ <div class="card"><div class="row" style="margin:0;align-items:center"><span class="note" style="margin:0">Slot</span><input type="range" id="slot" min="0" max="4" value="2" style="flex:1;min-width:180px"><b class="mono" id="slotv">1000 ms</b></div>
+  <div class="grid g3" style="margin-top:14px"><div><div class="tag">Throughput</div><div class="mono" id="tp" style="font-size:22px">512 bit/s</div></div><div><div class="tag">Mean order latency</div><div class="mono" id="lm" style="font-size:22px">502 ms</div></div><div><div class="tag">Worst case</div><div class="mono" id="lx" style="font-size:22px">1000 ms</div></div></div>
+  <p class="tag" style="margin-top:16px">Frame layout — 64 bytes, fixed size</p>
+  <div class="frame"><div style="flex:4;background:#16303a">ctr 4</div><div style="flex:48;background:#10252e">encrypted payload 48 B (type, operator, command, params, behaviour score, operator tag, random padding)</div><div style="flex:12;background:#1c3a46">link tag 12</div></div></div>
+</section>
+
+<section id="how">
+ <h2>Properties and evidence</h2>
+ <div class="card" style="overflow-x:auto"><table><thead><tr><th>Property</th><th>Mechanism</th><th>Evidence</th></tr></thead><tbody>
+ <tr><td>Wire identical with or without an order</td><td>one 64-byte encrypted frame per slot</td><td>E1: observer accuracy 51.0 % (100 % for event-driven)</td></tr>
+ <tr><td>Captured terminal reveals no duress semantics</td><td>terminal never verifies a PIN</td><td>tests, Wokwi S2</td></tr>
+ <tr><td>Coerced order silently neutralised</td><td>C2 returns <code>DECOY</code>; terminal still shows “ORDER SENT”</td><td>Wokwi S2</td></tr>
+ <tr><td>One coerced operator poisons the order, in any order</td><td>command-level poisoning</td><td><code>test_duress_first_then_normal_still_decoy</code></td></tr>
+ <tr><td>Implicit stress signal</td><td>typing-rhythm score → <code>HOLD</code></td><td>E2 (synthetic) — weak alone</td></tr>
+ <tr><td>Replay / tamper / brute force</td><td>link tag + counter, 3-strikes lockout</td><td>Wokwi S4–S6</td></tr></tbody></table></div>
+</section>
+
+<section id="sim">
+ <h2>The real firmware, in the Wokwi simulator</h2>
+ <p class="sub">ESP32 + OLED + 4×4 keypad + LEDs running the repository code. Press ▶, wait for <code>TACET boot</code>, then type <code>d</code> in the serial console to step through S1…S6.</p>
+ <div class="card wokwi"><div class="row" style="margin:0 0 12px"><a class="btn pri" href="https://wokwi.com/projects/480877116153590785" target="_blank" rel="noopener">Open in Wokwi ↗</a><button class="btn" id="embed">Load the simulator here</button></div>
+  <div id="frame"><p class="note" style="margin:0">Loaded on demand (it is heavy). If your browser blocks the frame, use “Open in Wokwi”.</p></div></div>
+</section>
+
+<section id="limits">
+ <h2>Honest limits</h2>
+ <div class="grid g2"><div class="card"><h3>Modelled, not simulated</h3><p>The radio is a model (<code>tchannel.py</code>); Wokwi has no LoRa part. The C2 runs on the same MCU in the demo. Operators in scenarios are scripted.</p></div>
+ <div class="card"><h3>Weak signals</h3><p>Typing-rhythm results are synthetic: at z = 3, false-positive rate 2.0 %, detection 52 % — a risk escalator (<code>HOLD</code>), never a lock. If the terminal key and one captured frame are stolen, a 6-digit PIN falls offline in about two seconds (E5). Demo keys are public.</p></div></div>
+</section>
+</div>
+<footer><div class="wrap">TACET · MIT licence · Author: Amal Karaoud · <a href="https://github.com/Amalkaraoud/tacet" target="_blank" rel="noopener">github.com/Amalkaraoud/tacet</a> · Defensive security only.</div></footer>
+
+<script>
+"use strict";
+const $=id=>document.getElementById(id), sleep=ms=>new Promise(r=>setTimeout(r,ms));
+/* ===== 1. wire lab ===== */
+const N=24;let mode="tacet",revealOn=false,queue=0,slots=[];const SLOT=550;
+const strip=$("strip");for(let i=0;i<N;i++){const c=document.createElement("div");c.className="cell";strip.appendChild(c)}
+function drawStrip(){[...strip.children].forEach((c,i)=>{const s=slots[i];c.className="cell";c.textContent="";
+  if(s){c.classList.add("f");if(s.real&&revealOn&&mode==="tacet")c.classList.add("real","rev");if(mode==="naive"){c.classList.add("nsz");c.textContent=s.size}else c.textContent="64"}})}
+function tick(){
+  let s=null;
+  if(mode==="tacet"){s={real:queue>0,size:64};if(queue>0)queue--}
+  else if(queue>0){queue--;s={real:true,size:64+Math.floor(Math.random()*90)}}
+  slots.push(s);if(slots.length>N)slots.shift();drawStrip()}
+setInterval(tick,SLOT);
+$("sendorder").onclick=()=>{queue++;if(mode==="tacet")$("wnote").textContent="The order is queued and leaves in the next slot, in place of a cover frame. The observer cannot tell which frames are real."};
+$("reveal").onclick=()=>{revealOn=!revealOn;$("reveal").classList.toggle("on",revealOn);$("reveal").textContent=revealOn?"Hide real frames":"Reveal real frames";drawStrip()};
+function setMode(m){mode=m;queue=0;slots=[];$("m-tacet").classList.toggle("on",m==="tacet");$("m-naive").classList.toggle("on",m==="naive");
+  const t=m==="tacet";$("mt").classList.toggle("red",!t);$("mt").firstChild.style.width=t?"51%":"100%";
+  $("acc").textContent=t?"51.0 % — chance level (experiment E1)":"100 % — every order is visible (baseline)";
+  $("wnote").textContent=t?"Each slot carries exactly 64 bytes, sent on a fixed clock. Real and cover frames are both encrypted; they differ in nothing the observer can measure. Cost: an order waits for the next slot.":"Naive link: nothing is sent unless there is an order, and its size varies. A single glance at the timing reveals when orders happen.";drawStrip()}
+$("m-tacet").onclick=()=>setMode("tacet");$("m-naive").onclick=()=>setMode("naive");
+
+/* ===== 2. scenario engine (same rules as c2 in the repo) ===== */
+const OPS={1:["482915","482951"],2:["739206","739260"]},THR=96,SL=1000;
+let C2=null,opSel=1,pin="",lastFrame=null;
+function newRound(){C2={fails:0,locked:false,first:null,poison:false,held:false,ctr:C2?C2.ctr:0,done:false}}
+newRound();
+const STEPS=["Link tag valid?","Counter fresh?","Real order (not cover)?","Operator tag: normal / duress / none","Behaviour score < threshold?","Two distinct operators?"];
+const pipe=$("pipe");STEPS.forEach((s,i)=>{const d=document.createElement("div");d.className="step";d.id="st"+i;d.innerHTML=`<span>${i+1}. ${s}</span><span></span>`;pipe.appendChild(d)});
+function clearPipe(){STEPS.forEach((_,i)=>{const e=$("st"+i);e.className="step";e.lastChild.textContent=""})}
+function mark(i,cls,txt){const e=$("st"+i);e.className="step "+cls;e.lastChild.textContent=txt||""}
+function log(m,c){const d=$("log");d.innerHTML+=`<div${c?` style="color:${c}"`:""}>${m}</div>`;d.scrollTop=d.scrollHeight}
+function verdict(v,extra){$("verdict").className="verdict v-"+v;$("verdict").textContent=v+(extra?" "+extra:"")}
+async function fly(bad){const p=document.createElement("div");p.className="pkt"+(bad?" x":"");p.textContent="64 B";$("wb").appendChild(p);
+  p.animate([{left:"0px"},{left:"calc(100% - 40px)"}],{duration:650,easing:"ease-in-out"});await sleep(660);p.remove()}
+async function c2(frame){
+  clearPipe();await fly(frame.tamper);
+  await sleep(120);mark(0,"act");await sleep(200);
+  if(frame.tamper){mark(0,"stop","tag mismatch");verdict("DROP_TAMPER");log("C2: frame altered in transit → dropped. No state change.","#ff9b9b");return"DROP_TAMPER"}
+  mark(0,"pass","ok");mark(1,"act");await sleep(200);
+  if(frame.ctr<=C2.ctr){mark(1,"stop","old counter");verdict("DROP_REPLAY");log("C2: counter not fresh → replay dropped.","#ff9b9b");return"DROP_REPLAY"}
+  C2.ctr=frame.ctr;mark(1,"pass","ok");mark(2,"pass","order");mark(3,"act");await sleep(220);
+  if(C2.locked){mark(3,"stop","locked");verdict("LOCKED");log("C2: operator keypad locked — administrator action required.","#ff9b9b");return"LOCKED"}
+  const [pn,pd]=OPS[frame.op];const kind=frame.pin===pn?"normal":frame.pin===pd?"duress":"none";
+  if(kind==="none"){C2.fails++;mark(3,"stop","no match");if(C2.fails>=3){C2.locked=true;verdict("LOCKED");log("C2: 3rd failure → LOCKED.","#ff9b9b");return"LOCKED"}
+    verdict("FAIL",`(${C2.fails}/3)`);log(`C2: PIN for operator ${frame.op} matches neither code (${C2.fails}/3).`,"#ff9b9b");return"FAIL"}
+  mark(3,"pass",kind==="duress"?"DURESS (silent)":"normal");C2.fails=0;
+  mark(4,"act");await sleep(220);
+  if(C2.held||frame.bio>=THR){const first=!C2.held;C2.held=true;mark(4,"stop",first?"score "+frame.bio:"order on hold");verdict("HOLD");log(first?`C2: stress score ${frame.bio} ≥ ${THR} → order held for review.`:"C2: order already on hold — still waiting for review.","#ffd98a");return"HOLD"}
+  mark(4,"pass","score "+frame.bio);if(kind==="duress")C2.poison=true;
+  mark(5,"act");await sleep(220);
+  if(C2.first===null){C2.first=frame.op;mark(5,"stop","waiting for 2nd");verdict("PENDING");log(`C2: operator ${frame.op} recorded${C2.poison?" (internally flagged)":""}. Waiting for the second operator.`,"#8fe9ff");return"PENDING"}
+  if(C2.first===frame.op){mark(5,"stop","same operator");verdict("PENDING");log("C2: same operator twice does not count.","#8fe9ff");return"PENDING"}
+  mark(5,"pass","2 operators");const r=C2.poison?"DECOY":"EXECUTE";C2.done=true;verdict(r);
+  log(r==="DECOY"?"C2: duress detected → order NEUTRALISED (decoy). The terminal showed ORDER SENT, as usual.":"C2: two distinct operators, no duress → order EXECUTED.",r==="DECOY"?"#c8bfff":"#8df2b8");return r}
+async function submit(){
+  if(pin.length<6){$("screen").innerHTML=`TACET terminal<br>Operator <b>${opSel}</b> — need 6 digits`;return}
+  const frame={op:opSel,pin,bio:+$("bio").value,ctr:++ctrSeq,tamper:false};lastFrame={...frame};pin="";
+  $("screen").innerHTML=`TACET terminal<br><b>ORDER SENT</b><br><span style="opacity:.6">(always shown — the terminal does not verify the PIN)</span>`;
+  updPin();await c2(frame)}
+let ctrSeq=0;
+function updPin(){const e=$("pinv");if(e)e.textContent=pin.padEnd(6,"·").replace(/\d/g,"●")}
+const kp=$("kp");[1,2,3,4,5,6,7,8,9,"C",0,"OK"].forEach(k=>{const b=document.createElement("button");b.className="key"+(typeof k==="string"?" fn":"");b.textContent=k;
+  b.onclick=()=>{if(k==="C")pin="";else if(k==="OK"){submit();return}else if(pin.length<6)pin+=k;
+    $("screen").innerHTML=`TACET terminal<br>Operator <b id="opn">${opSel}</b> — enter PIN<br><b id="pinv"></b>`;updPin()};kp.appendChild(b)});
+$("opsw").onclick=()=>{opSel=opSel===1?2:1;pin="";$("screen").innerHTML=`TACET terminal<br>Operator <b id="opn">${opSel}</b> — enter PIN<br><b id="pinv"></b>`;updPin()};
+$("bio").oninput=e=>$("biov").textContent=e.target.value;
+const replayFn=async()=>{if(!lastFrame){log("Nothing to replay yet — submit an order first.");return}log("Adversary re-injects the last frame…");await c2({...lastFrame})};$("replay").onclick=()=>{if(!busy)replayFn()};
+const tamperFn=async()=>{log("Adversary flips one bit of a frame in transit…");await c2({op:1,pin:"000000",bio:0,ctr:++ctrSeq,tamper:true})};$("tamper").onclick=()=>{if(!busy)tamperFn()};
+$("newround").onclick=()=>{newRound();clearPipe();verdict("—");$("verdict").className="verdict";log("Administrator action: new round, C2 unlocked, counters kept.","#8fe9ff")};
+let busy=false;
+async function play(s){
+  if(busy)return;busy=true;document.querySelectorAll("[data-s]").forEach(b=>b.disabled=true);
+  newRound();clearPipe();$("log").innerHTML="";$("verdict").className="verdict";$("verdict").textContent="—";
+  document.querySelectorAll("[data-s]").forEach(b=>b.classList.toggle("on",b.dataset.s===s));
+  const run=async(op,p,bio)=>{opSel=op;pin=p;$("bio").value=bio;$("biov").textContent=bio;updPin();$("screen").innerHTML=`TACET terminal<br>Operator <b>${op}</b> typed their PIN…`;await sleep(350);await submit();await sleep(450)};
+  if(s==="S1"){log("S1 — two operators, normal PINs.");await run(1,"482915",8);await run(2,"739206",12)}
+  if(s==="S2"){log("S2 — operator 1 is forced and types the DURESS PIN.");await run(1,"482951",66);await run(2,"739206",4)}
+  if(s==="S3"){log("S3 — normal PINs but a stressed typing rhythm.");await run(1,"482915",157);await run(2,"739206",27)}
+  if(s==="S4"){log("S4 — adversary replays a captured frame.");await run(1,"482915",8);await replayFn()}
+  if(s==="S5"){log("S5 — adversary alters a frame.");await tamperFn()}
+  if(s==="S6"){log("S6 — brute-forcing operator 1’s PIN.");for(const g of["111111","222222","333333","444444"])await run(1,g,10)}
+  busy=false;document.querySelectorAll("[data-s]").forEach(b=>b.disabled=false);
+}
+document.querySelectorAll("[data-s]").forEach(b=>b.onclick=()=>play(b.dataset.s));
+/* ===== 3. trade-off (E3 values) ===== */
+const E3=[[250,2048,125,250],[500,1024,250,500],[1000,512,502,1000],[2000,256,993,2000],[5000,102.4,2563,5000]];
+$("slot").oninput=e=>{const r=E3[+e.target.value];$("slotv").textContent=r[0]+" ms";$("tp").textContent=r[1]+" bit/s";$("lm").textContent=r[2]+" ms";$("lx").textContent=r[3]+" ms"};
+$("embed").onclick=()=>{$("frame").innerHTML='<iframe src="https://wokwi.com/projects/480877116153590785" title="TACET Wokwi simulation" allow="clipboard-write"></iframe>'};
+setMode("tacet");updPin();
+</script>
+</body>
+</html>
