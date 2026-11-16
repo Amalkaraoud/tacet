@@ -4,7 +4,7 @@
 
 > *tacet* (Latin): "it is silent". A MicroPython terminal that lets two operators authorise an
 > irreversible order (a wire transfer, a command release) **even when one of them is being forced**,
-> without the coercer — or a network eavesdropper — being able to tell.
+> without the coercer  or a network eavesdropper  being able to tell.
 
 Academic project — MicroPython course MPI1, Faculté des Sciences de Sfax, 2026-2027.
 Author: **Amal Karaoud** · Supervisor: **Roua Torjmen**. Defensive security only.
